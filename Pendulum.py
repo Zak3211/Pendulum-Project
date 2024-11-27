@@ -3,28 +3,24 @@ import math
 import matplotlib.pyplot as plt
 
 #constants
-g = -9.81
+g = 9.81
 m1 = 1
 m2 = 1
 L1 = 100
 L2 = 100
 
 #angles defining the system
-th1 = 100
-th2 = 50
+th1 = math.pi/2
+th2 = 0
 
 #w1 = th1'. w2 = th2'
-w1 = math.pi/2
-w2 = math.pi
+w1 = 0
+w2 = 0
 
-#o1 = w1'. o2 = w2'
-o1 = math.pi/5
-o2 = -math.pi/5
+dt = 0.025
 
-dt = 0.001
-
-#define 2 differential equations to describe the system. x' = dx/dt
-def fun3(th1, th2, w2):
+#define 2 differential equations to describe the system. 
+def fun1(th1, th2, w2):
     #o1 = w1'
     r = -g*(2*m1 + m2)*math.sin(th1)
     r -= m2*g*math.sin(th1 - 2*th2)
@@ -32,35 +28,18 @@ def fun3(th1, th2, w2):
     r /= L1*(2*m1 + m2 - m2*math.cos(2*th1 - 2*th2))
     return r
 
-def fun4(th1, th2, w1, w2):
+def fun2(th1, th2, w1, w2):
     #o2 = w2'
     r = (w1**2)*L1*(m1 + m2)
     r += g*(m1 + m2)*math.cos(th1)
     r += (w2**2)*L2*m2*math.cos(th1 - th2)
-    r *= 2*math.sin(th1 - th2)
-    r /= L2*(2*m1 + m2 - m2*math.cos(2*th1 - 2*th2))
+    r = r* 2*math.sin(th1 - th2)
+    r = r/ (L2*(2*m1 + m2 - m2*math.cos(2*th1 - 2*th2)))
     return r
 
-    
-def RK(th1, th2, w1, w2, o1, o2, n):
-    #returns a single iteration of the Runge-Kutta Algorithm
-    if n == 1:
-        r = w1 + dt*o1
-    elif n == 2:
-        r =  w2 + dt*o2
-    elif n == 3:
-        k1 = fun3(th1, th2, w2)
-        k2 = fun3(th1+dt*k1/2, th2+dt*k1/2 , w2+dt*k1/2)
-        k3 = fun3(th1+dt*k2/2, th2+dt*k2/2, w2+dt*k2/2)
-        k4 = fun3(th1+dt*k3, th2+dt*k3, w2+dt*k3)
-        r =  o1 + dt/6*(k1+2*k2+2*k3+k4)
-    elif n == 4:
-        k1 = fun4(th1, th2, w1,  w2)
-        k2 = fun4(th1+dt*k1/2, th2+dt*k1/2, w1+dt*k1/2, w2+dt*k1/2)
-        k3 = fun4(th1+dt*k2/2, th2+dt*k2/2, w1+dt*k2/2, w2+dt*k2/2)
-        k4 = fun4(th1+dt*k3, th2+dt*k3,w1+dt*k3, w2+dt*k3)
-        r =  o2 + dt/6*(k1+2*k2+2*k3+k4)
-    return r
+#o1 = w1'. o2 = w2'
+o1 = fun1(th1, th2, w2)
+o2 = fun2(th1, th2, w1, w2)
 
 #used for verficiation
 def energy(th1, th2, w1, w2):
@@ -70,7 +49,7 @@ def energy(th1, th2, w1, w2):
 
 energies = []
 window = tk.Tk()
-canvas = tk.Canvas(window, bg = 'black', highlightthickness= 0)
+canvas = tk.Canvas(window, bg = 'white', highlightthickness= 0)
 
 screen_width = window.winfo_screenwidth()
 screen_height = window.winfo_screenheight()
@@ -81,60 +60,49 @@ canvas.config(width = screen_width, height = screen_height)
 canvas.pack()
 
 x1 = screen_width/2 + L1*math.sin(th1)
-y1 = screen_height/2 -L1*math.cos(th1)
-p1 = canvas.create_oval(x1 - 10, y1 - 10, x1 + 10, y1 + 10, fill='white')
+y1 = screen_height/2 + L1*math.cos(th1)
+p1 = canvas.create_oval(x1 - 10, y1 - 10, x1 + 10, y1 + 10, fill='black')
+
+l1 = canvas.create_line(screen_width/2, screen_height/2, x1, y1, fill = 'black', width = 2)
 
 x2 =  x1 + L2*math.sin(th2)
 y2 = y1 + L2*math.cos(th2)
-p2 = canvas.create_oval(x2 - 10, y2 - 10, x2 + 10, y2 + 10,fill = 'white')
+p2 = canvas.create_oval(x2 - 10, y2 - 10, x2 + 10, y2 + 10,fill = 'black')
 
-canvas.create_oval(screen_width/2 - 5, screen_height/2 - 5, 
-                   screen_width/2 + 5, screen_height/2 + 5,fill = 'red')
+l2 = canvas.create_line(x1, y1, x2, y2, fill = 'black', width = 2)
+
 
 def update(th1, th2, w1, w2, o1, o2):
-    
-
-    new_th1 = th1 + dt*w1
-    new_th2 = th2 + dt*w2
-
-    new_w1 = RK(th1, th2, w1, w2, o1, o2, 1)
-    new_w2 = RK(th1, th2, w1, w2, o1, o2, 2)
-    new_o1 = RK(th1, th2, w1, w2, o1, o2, 3)
-    new_o2 = RK(th1, th2, w1, w2, o1, o2, 4)
-
-    th1, th2, w1, w2, o1, o2 = new_th1, new_th2, new_w1, new_w2, new_o1, new_o2
-
     #using simplectic method instead for updating variables
-
-    """ o1 = (fun3(th1, th2, w2))
-    o2 = (fun4(th1, th2, w1, w2))
+    o1 = (fun1(th1, th2, w2))
+    o2 = (fun2(th1, th2, w1, w2))
 
     w1 = (w1 + dt*o1)
     w2 = (w2 + dt*o2)
 
     th1 += dt * w1
-    th2 += dt * w2"""
+    th2 += dt * w2
 
     #update canvas
     x1 = screen_width/2 + L1*math.sin(th1)
-    y1 = screen_height/2 -L1*math.cos(th1)
+    y1 = screen_height/2 + L1*math.cos(th1)
 
     x2 =  x1 + L2*math.sin(th2)
     y2 = y1 + L2*math.cos(th2)
 
-    #print(f"{th1}, {th2}, {w1}, {o1}, {o2}")
-    #print("Energy:", energy(th1, th2, w1, w2))
-    energies.append(energy(th1, th2, w1, w2))
+    #energies.append(energy(th1, th2, w1, w2))
 
     canvas.coords(p1, [x1 - 10, y1 - 10, x1 + 10, y1 + 10])
     canvas.coords(p2, [x2 - 10, y2 - 10, x2 + 10, y2 + 10])
+    canvas.coords(l1, [screen_width/2, screen_height/2, x1, y1])
+    canvas.coords(l2, [x1, y1, x2, y2])
 
-    canvas.after(int(dt * 1000 + 1), lambda: update(th1, th2, w1, w2, o1, o2))
+    canvas.after(1, lambda: update(th1, th2, w1, w2, o1, o2))
 
 update(th1, th2, w1, w2, o1, o2)
 window.mainloop()
-
-fig = plt.figure()
-ax = fig.add_subplot(111)
-ax.plot(energies)
-plt.show()
+if len(energies) != 0:
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(energies)
+    plt.show()
