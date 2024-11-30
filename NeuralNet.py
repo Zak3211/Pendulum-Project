@@ -15,15 +15,16 @@ class NeuralNet:
         
     def forward(self, inputs):
         inputs = np.array(inputs).reshape(-1,1)
+
         for i in range(len(self.weights)):
-            print(inputs)
+            
             inputs = np.dot(self.weights[i].T, inputs) + self.biases[i]
 
-            #apply activation
             for input in inputs:
                 input = step(input)
-        return inputs[0]
 
-net = NeuralNet([5,2,3,1])
+        return inputs
+
+net = NeuralNet([5,2,3,2])
 print(net.forward([5,4,3,2,1]))
             
