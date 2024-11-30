@@ -5,5 +5,5 @@ class Neuron:
         self.weights = weights
         self.bias = bias
     
-    def calc(self, inputs):
+    def forward(self, inputs):
         return np.dot(self.weights, inputs) + self.bias
