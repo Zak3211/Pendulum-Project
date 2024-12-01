@@ -10,8 +10,10 @@ L1 = 100
 L2 = 100
 
 #angles defining the system
-th1 = math.pi/2
-th2 = math.pi/2
+
+#0.0000000000000004 - min deviation 
+th1 = math.pi + 0.000000000000000309
+th2 = math.pi
 
 #w1 = th1'. w2 = th2'
 w1 = 0
@@ -73,7 +75,7 @@ p2 = canvas.create_oval(x2 - 10, y2 - 10, x2 + 10, y2 + 10,fill = 'white')
 l2 = canvas.create_line(x1, y1, x2, y2, fill = 'white', width = 2)
 
 #tracing logic
-trace = False
+trace = True
 if trace:
     trace_points = [x2, y2, x2, y2]
     trace_line = canvas.create_line(trace_points, fill="blue", width=1, smooth=True)
