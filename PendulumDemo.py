@@ -2,10 +2,8 @@ import tkinter as tk
 import math
 import matplotlib.pyplot as plt
 
-
 dt = 0.025
 g = 9.81
-
 
 #first pendulum
 m1 = 1
@@ -26,7 +24,7 @@ m2_ = 1
 L1_ = 100
 L2_ = 100
 
-th1_ = math.pi +0.001
+th1_ = math.pi + 0.000000001
 th2_ = math.pi/2
 
 w1_ = 0
