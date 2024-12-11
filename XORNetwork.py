@@ -17,7 +17,8 @@ class XORNetwork:
 #net = Neuron.Neuron([0.5,0.5], -0.9)  #and Neuron
 #net = Neuron.Neuron([-0.5, -0.5], 1)  #nand network
 
-net = XORNetwork()                    #XOR Network
+#net = XORNetwork()                    #XOR Network
+
 
 print(net.forward([0,0])) #0
 print(net.forward([1,0])) #1

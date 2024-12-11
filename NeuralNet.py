@@ -1,7 +1,7 @@
 import numpy as np
 
-def step(x):
-    return 1 if x > 0 else 0
+def relu(x):
+    return max(0,x)
 
 class NeuralNet:
     def __init__(self,  layers):
@@ -14,11 +14,19 @@ class NeuralNet:
             self.biases.append(np.random.rand(layers[i+1], 1))
         
     def forward(self, inputs):
-        inputs = np.array(inputs).reshape(-1,1)
+        #inputs = np.array(inputs).reshape(-1,1)
         for i in range(len(self.weights)):
-            inputs = np.dot(self.weights[i].T, inputs) + self.biases[i]
+            inputs = np.dot(self.weights[i], inputs) + self.biases[i]
             for input in inputs:
-                input = step(input)
+                input = relu(input)
+        return inputs
+    
+    def forward(self, inputs, i):
+        #custom forward function
+        inputs = np.dot(self.weights[0], inputs) + self.biases[0]
+        for input in inputs:
+            input = relu(input)
+        inputs = np.dot(self.weights[1], inputs) + self.biases[1]
 
         return inputs
 
