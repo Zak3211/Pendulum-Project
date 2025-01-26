@@ -30,6 +30,4 @@ class NeuralNet:
 
         return inputs
 
-net = NeuralNet([5,2,3,1])
-#print(net.forward([5,4,3,2,1]))
             

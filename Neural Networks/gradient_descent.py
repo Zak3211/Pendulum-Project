@@ -9,7 +9,3 @@ def gradient_descent(x0, lr,  epochs):
     return x0
 
 print(gradient_descent(1, 0.01, 10000))
-
-
-
-
