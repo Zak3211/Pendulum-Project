@@ -1,21 +1,14 @@
 import math
 import tkinter as tk
 
-#tkinter configuration
-window = tk.Tk()
-canvas = tk.Canvas(window, bg = 'black', highlightthickness= 0)
-
-screen_width = window.winfo_screenwidth()
-screen_height = window.winfo_screenheight()
-
-window.attributes("-fullscreen", True)
-canvas.config(width = screen_width, height = screen_height)
-
-canvas.pack()
+screen_width = 1000
+screen_height = 500
 
 class Pendulum:
-    def __init__(self):
+    def __init__(self, net = None, canvas = None):
         self.canvas = canvas
+        self.net = net
+
         self.g = -9.81
         self.L = 100
         self.m = 5
@@ -29,11 +22,14 @@ class Pendulum:
         self.bx_ = 0
         self.bx__ = 0
 
-        self.by = screen_height/2 - 100
+        self.by = screen_height/2 + 100
 
         self.x, self.y = self.getX(), self.getY()
-        self.line = self.canvas.create_line(self.bx, self.by, self.x, self.y, fill = 'white', width = 2)
-        self.point = self.canvas.create_oval(self.x - 10, self.y - 10, self.x + 10, self.y + 10, fill='white')
+
+        if self.canvas:
+            self.line = self.canvas.create_line(self.bx, self.by, self.x, self.y, fill = 'white', width = 2)
+            self.point = self.canvas.create_oval(self.x - 10, self.y - 10, self.x + 10, self.y + 10, fill='white')
+            self.base = self.canvas.create_line(self.bx-20, self.by, self.bx+20, self.by, fill = 'gray', width = 5)
 
     #functions of motion
     def getTheta__(self):
@@ -51,26 +47,36 @@ class Pendulum:
 
     #main loop
     def update(self):
+        if self.bx >= screen_width - 70 or self.bx <= 70:
+            self.bx__ = 0
+            self.bx_ = 0
+
         self.theta__ = self.getTheta__()
         self.theta_ += self.theta__*self.dt
         self.theta += self.theta_*self.dt
 
+        self.theta %= 2*math.pi
         self.x = self.getX()
         self.y = self.getY()
 
         self.bx_ += self.bx__*self.dt
         self.bx += self.bx_*self.dt
-    
+        self.bx = min(self.bx, screen_width - 70)
+        self.bx = max(self.bx, 70)
+
         self.theta_ *= 0.999
         self.bx_ *= 0.9
         self.bx__ *= 0.99
 
-        self.canvas.coords(self.line, [self.bx, self.by, self.x, self.y])
-        self.canvas.coords(self.point, [self.x - 10, self.y - 10, self.x + 10, self.y + 10])
-        self.canvas.after(2, lambda: self.update())
+        if self.canvas:
+            self.canvas.coords(self.line, [self.bx, self.by, self.x, self.y])
+            self.canvas.coords(self.point, [self.x - 10, self.y - 10, self.x + 10, self.y + 10])
+            self.canvas.coords(self.base, [self.bx-20, self.by, self.bx+20, self.by])
+            self.canvas.after(2, lambda: self.update())
 
-pendulum = Pendulum()
+
+"""pendulum = Pendulum(canvas)
 window.bind('<Left>', pendulum.move_left)
 window.bind('<Right>', pendulum.move_right)
 pendulum.update()
-window.mainloop()
+window.mainloop()"""
