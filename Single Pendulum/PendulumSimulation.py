@@ -3,6 +3,7 @@ from SinglePendulum import Pendulum
 import math
 import tkinter as tk
 import pickle
+import time
 
 def simulate(net):
     pendulum = Pendulum()
