@@ -22,7 +22,7 @@ w2 = 0
 dt = 0.025
 
 #define 2 differential equations to describe the system. 
-def fun1(th1, th2, , w1, w2):
+def fun1(th1, th2, w1, w2):
     #o1 = w1'
     r = -g*(2*m1 + m2)*math.sin(th1)
     r -= m2*g*math.sin(th1 - 2*th2)
@@ -40,7 +40,7 @@ def fun2(th1, th2, w1, w2):
     return r
 
 #o1 = w1'. o2 = w2'
-o1 = fun1(th1, th2, w2)
+o1 = fun1(th1, th2, w1, w2)
 o2 = fun2(th1, th2, w1, w2)
 
 #used for verficiation
@@ -82,8 +82,8 @@ if trace:
 
 def update(th1, th2, w1, w2, o1, o2):
     #using simplectic method instead for updating variables
-    o1 = (fun1(th1, th2, w2))
-    o2 = (fun2(th1, th2, w1, w2))
+    o1 = fun1(th1, th2, w1, w2)
+    o2 = fun2(th1, th2, w1, w2)
 
     w1 = (w1 + dt*o1)
     w2 = (w2 + dt*o2)
