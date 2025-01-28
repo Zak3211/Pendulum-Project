@@ -5,7 +5,7 @@ screen_width = 1000
 screen_height = 500
 
 class Pendulum:
-    def __init__(self, net = None, canvas = None):
+    def __init__(self, canvas = None, net = None):
         self.canvas = canvas
         self.net = net
 
@@ -26,11 +26,10 @@ class Pendulum:
 
         self.x, self.y = self.getX(), self.getY()
 
-        if self.canvas:
-            self.line = self.canvas.create_line(self.bx, self.by, self.x, self.y, fill = 'white', width = 2)
-            self.point = self.canvas.create_oval(self.x - 10, self.y - 10, self.x + 10, self.y + 10, fill='white')
-            self.base = self.canvas.create_line(self.bx-20, self.by, self.bx+20, self.by, fill = 'gray', width = 5)
-
+        """self.line = self.canvas.create_line(self.bx, self.by, self.x, self.y, fill = 'white', width = 2)
+        self.point = self.canvas.create_oval(self.x - 10, self.y - 10, self.x + 10, self.y + 10, fill='white')
+        self.base = self.canvas.create_line(self.bx-20, self.by, self.bx+20, self.by, fill = 'gray', width = 5)
+"""
     #functions of motion
     def getTheta__(self):
         return -(1/self.L)*(self.g*math.sin(self.theta) - self.bx__*math.cos(self.theta))
@@ -68,14 +67,16 @@ class Pendulum:
         self.bx_ *= 0.9
         self.bx__ *= 0.99
 
-        if self.canvas:
-            self.canvas.coords(self.line, [self.bx, self.by, self.x, self.y])
-            self.canvas.coords(self.point, [self.x - 10, self.y - 10, self.x + 10, self.y + 10])
-            self.canvas.coords(self.base, [self.bx-20, self.by, self.bx+20, self.by])
-            self.canvas.after(2, lambda: self.update())
+"""        self.canvas.coords(self.line, [self.bx, self.by, self.x, self.y])
+        self.canvas.coords(self.point, [self.x - 10, self.y - 10, self.x + 10, self.y + 10])
+        self.canvas.coords(self.base, [self.bx-20, self.by, self.bx+20, self.by])
+        self.canvas.after(2, lambda: self.update())"""
 
-
-"""pendulum = Pendulum(canvas)
+"""window = tk.Tk()
+canvas = tk.Canvas(window, bg = 'black', highlightthickness= 0)
+canvas.config(width = screen_width, height = screen_height)
+canvas.pack()
+pendulum = Pendulum(canvas)
 window.bind('<Left>', pendulum.move_left)
 window.bind('<Right>', pendulum.move_right)
 pendulum.update()

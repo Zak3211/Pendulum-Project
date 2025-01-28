@@ -62,7 +62,7 @@ def displayGeneration():
         canvas.config(width = screen_width, height = screen_height)
         canvas.pack()
 
-        p = Pendulum(canvas)
+        p = Pendulum()
 
         line = canvas.create_line(p.bx, p.by, p.x, p.y, fill = 'white', width = 2)
         point = canvas.create_oval(p.x - 10, p.y - 10, p.x + 10, p.y + 10, fill='white')
@@ -79,9 +79,5 @@ def displayGeneration():
     
     game_loop()
     window.mainloop()
-    while True:
-        continue
 
 displayGeneration()
-while True:
-    simulateGeneration()
