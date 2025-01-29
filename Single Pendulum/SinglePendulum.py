@@ -67,7 +67,7 @@ class Pendulum:
         self.bx_ *= 0.9
         self.bx__ *= 0.99
 
-"""        self.canvas.coords(self.line, [self.bx, self.by, self.x, self.y])
+"""     self.canvas.coords(self.line, [self.bx, self.by, self.x, self.y])
         self.canvas.coords(self.point, [self.x - 10, self.y - 10, self.x + 10, self.y + 10])
         self.canvas.coords(self.base, [self.bx-20, self.by, self.bx+20, self.by])
         self.canvas.after(2, lambda: self.update())"""
