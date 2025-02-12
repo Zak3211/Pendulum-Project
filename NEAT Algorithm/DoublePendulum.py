@@ -64,3 +64,5 @@ class doublePendulum:
 
         self.theta1 += self.theta1_*self.dt
         self.theta2 += self.theta1_*self.dt
+    
+    #testing if I can push
