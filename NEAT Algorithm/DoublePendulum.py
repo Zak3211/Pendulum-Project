@@ -15,7 +15,7 @@ class doublePendulum:
         #Angle Parameters
         if True:
             self.theta1 = 0
-            self.theta2 = 0
+            self.theta2 = math.pi/2
 
             self.theta1_ = 0
             self.theta2_ = 0
@@ -25,7 +25,7 @@ class doublePendulum:
 
         #Base Parameters:
         if True:
-            self.xb = 0
+            self.xb = 500
             self.xb_ = 0
             self.xb__ = 0
         
@@ -46,8 +46,7 @@ class doublePendulum:
     
     def update(self):
 
-        self.xb__ = max(self.xb__, 100)
-
+        self.xb__ = min(self.xb__, 100)
         self.xb_ += self.xb__*self.dt
         self.xb += self.xb_*self.dt
         self.xb_ *= 0.9
@@ -60,11 +59,15 @@ class doublePendulum:
         self.get_theta2__()
 
         self.theta1_ += self.theta1__*self.dt
-        self.theta2_ += self.theta1__*self.dt
+        self.theta2_ += self.theta2__*self.dt
+
+        self.theta1_ *= 0.999
+        self.theta2_ *= 0.999
 
         self.theta1 += self.theta1_*self.dt
-        self.theta2 += self.theta1_*self.dt
-    
+        self.theta2 += self.theta2_*self.dt
+
+import tkinter as tk  
 def displayPendulum(): 
     if True: 
         window = tk.Tk() 
@@ -98,7 +101,7 @@ def displayPendulum():
         canvas.coords(line2, [x1, y1, x2, y2]) 
         canvas.coords(point2, [x2 - 10, y2 - 10, x2 + 10, y2 + 10]) 
         canvas.coords(base, [p.xb-20, by, p.xb+20, by]) 
-        canvas.after(2, game_loop) game_loop()
+        canvas.after(2, game_loop) 
         
     game_loop()
     window.mainloop() 
