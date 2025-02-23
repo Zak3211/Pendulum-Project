@@ -2,36 +2,62 @@ import math
 import numpy as np
 import random
 
-class NeuralNet:
-    def __init__(self,  layers):
+class NEATNet:
+    def __init__(self):
 
-        #random architecture
-        self.layers = [6]
+        self.layers = [4]
         for i in range(random.randint(1,10)):
             self.layers.append(random.randint(1,11))
         self.layers.append(1)
 
+        self.layers = [4, 5, 5, 1]
         self.weights = []
         self.biases = []
 
-        for i in range(len(layers)-1):
-            self.weights.append(np.random.rand(layers[i], layers[i+1]))
-            self.biases.append(np.random.rand(layers[i+1], 1))
+        for i in range(len(self.layers)-1):
+            self.weights.append(np.random.rand(self.layers[i+1], self.layers[i]))
+            self.biases.append(np.random.rand(self.layers[i+1], 1))
     
     def normal(self, mu, sigma):
         return int(np.random.normal(mu, sigma))
     
     def ReLU(self, inputs):
-        for input in inputs:
-            input = max(0,input)
-        return inputs
-    
+        return np.maximum(0, inputs)
+
     def add_Node(self):
-        layer = random.randint(1, len(self.layers)-2)
-        node_index = random.randint(0,self.layers[layer])
+        layer = random.randint(1, len(self.layers)-3)
+
+        new_weights = np.random.randint(1, 10, self.weights[layer].shape[1])
+        self.weights[layer] = np.vstack((self.weights[layer], new_weights))
+
+        new_biases = np.random.randint(1, 10, self.biases[layer].shape[1])
+        self.biases[layer] = np.vstack((self.biases[layer], new_biases))
         
+        new_weights = np.random.rand(self.weights[layer+1].shape[0], 1)
+        self.weights[layer+1] = np.hstack((self.weights[layer+1], new_weights))
+    
+    def delete_node(self):
+        layer = random.randint(1, len(self.layers)-3)
+        while len(self.weights[layer]) == 1:
+            layer = random.randint(1, len(self.layers)-3)
+        node = random.randint(0, len(self.weights[layer]) - 1)
+
+        self.weights[layer] = np.delete(self.weights[layer], node, axis = 0)
+        self.biases[layer] = np.delete(self.biases[layer], node)
+        self.weights[layer+1] = np.delete(self.weights[layer+1], node, axis = 1)
+
     def forward(self, inputs):
+        inputs = np.array(inputs)
         for i in range(len(self.weights)):
             inputs = np.dot(self.weights[i], inputs) + self.biases[i]
+            inputs = inputs[0]
             inputs = self.ReLU(inputs)
-        return inputs
+        return inputs[0]
+
+for i in range(1):
+    net = NEATNet()
+    print([net.weights[i].shape for i in range(len(net.weights))])
+    print(net.forward([-3, 1,2,1]))
+    net.delete_node()
+    print([net.weights[i].shape for i in range(len(net.weights))])
+    print(net.forward([-3, 1,2,1]))
