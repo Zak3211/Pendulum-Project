@@ -48,3 +48,6 @@ class PendulumNet:
             perturbation = np.random.randint(-5 * entropy, 5 * entropy, size=parameter.shape) / 100
             parameter += perturbation
         return child
+
+net = PendulumNet()
+print(net.forward([1,2]))

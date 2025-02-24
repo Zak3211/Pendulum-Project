@@ -55,12 +55,12 @@ class doublePendulum:
         self.xb = max(self.xb, 70)
         self.xb = min(self.xb, self.width - 70)
         
-
+        
         self.get_theta1__()
         self.get_theta2__()
 
         self.theta1_ += self.theta1__*self.dt
-        self.theta2_ += self.theta1__*self.dt
+        self.theta2_ += self.theta2__*self.dt
 
         self.theta1 += self.theta1_*self.dt
-        self.theta2 += self.theta1_*self.dt
+        self.theta2 += self.theta2_*self.dt

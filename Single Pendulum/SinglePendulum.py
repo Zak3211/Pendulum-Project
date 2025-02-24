@@ -11,7 +11,7 @@ class Pendulum:
 
         self.g = -9.81
         self.L = 100
-        self.m = 5
+        self.m = 1500
         self.dt = 0.025
 
         self.theta = math.pi/2
