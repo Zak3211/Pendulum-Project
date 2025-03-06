@@ -9,7 +9,6 @@ class GraphNode:
         self.bias = random.randint(1,100)/100
 
 class graphNeuralNetwork: 
-
     def __init__(self, numInputs = 4, numOutputs = 2):
         self.idToNode = {}
         self.currId = 0
@@ -18,6 +17,10 @@ class graphNeuralNetwork:
         self.inputNodes = self.outputNodes = None
         self.inputNodes = [self.addNode() for _ in range(numInputs)]
         self.outputNodes = [self.addNode() for _ in range(numOutputs)]
+        
+        self.inputSet = set(self.inputNodes)
+        self.outputSet = set(self.outputNodes)
+
         self.innerNodes = []
 
         self.graph = defaultdict(list)
@@ -36,9 +39,11 @@ class graphNeuralNetwork:
 
     def addConnection(self):
         for _ in range(30):
-            node1 = self.idToNode[random.choice(self.ids)]
-            node2 = self.idToNode[random.choice(self.ids)]
+            node1 = random.choice(self.ids)
+            node2 = random.choice(self.ids)
             if node1 == node2:
+                continue
+            if node1 in self.outputSet or node2 in self.inputSet:
                 continue
             if (node1, node2) in self.connections:
                 continue
@@ -56,7 +61,7 @@ class graphNeuralNetwork:
     def removeConnection(self):
         if not self.connectionList:
             return False
-        connectionIndex = random.randint(len(self.connectionList))
+        connectionIndex = random.randint(0, len(self.connectionList)-1)
         del self.connections[self.connectionList[connectionIndex]]
         self.connectionList.pop(connectionIndex)
         return True        
@@ -79,12 +84,12 @@ class graphNeuralNetwork:
 
     def getNodeValue(self, nodeId):
         currNode = self.idToNode[nodeId]
-        if nodeId in self.inputNodes:
+        if nodeId in self.inputSet:
             return currNode.value
 
         currNode.value = 0
         for neighbor in self.reverseGraph[nodeId]:
-            if (nodeId, neighbor) not in self.connections:
+            if (neighbor, nodeId) not in self.connections:
                 continue
             currNode.value += self.connections[(neighbor, nodeId)]*self.getNodeValue(neighbor)
         currNode.value = max(0, currNode.value + currNode.bias)
@@ -92,11 +97,34 @@ class graphNeuralNetwork:
     
     def forward(self):
         return [self.getNodeValue(outputNode) for outputNode in self.outputNodes]
+
+    def mutate(self):
+        for connection in self.connections.keys():
+            self.connections[connection] += random.randint(-100,100)/1000
+
+        for nodeId in self.ids:
+            self.idToNode[nodeId].bias += random.randint(-100,100)/1000
+        
+        newNodeCount = max(0, random.randint(0,100) - 80)//10
+        for _ in range(newNodeCount):
+            self.addNode()
+            
+        removedConnectionCount = max(0, random.randint(0,100) - 85)//5
+        for _ in range(removedConnectionCount):
+            self.removeConnection()
+
+        newConnectionCount = max(0, random.randint(0,100) - 70)//5
+        for _ in range(newConnectionCount):
+            self.addConnection()
         
 newNet = graphNeuralNetwork()
-newNet.addConnection()
-newNet.addConnection()
-newNet.setInputs([1,2,3,4])
+newNet.addNode()
+newNet.addNode()
+for _ in range(100):
+    newNet.addConnection()
 
-for _ in range(5):
+newNet.setInputs([1,2,3,4])
+for _ in range(50):
+    newNet.removeConnection()
+    print(len(newNet.connectionList))
     print(newNet.forward())

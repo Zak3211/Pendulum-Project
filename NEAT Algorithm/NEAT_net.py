@@ -30,7 +30,7 @@ class NEATNet:
 
         new_weights = np.random.randint(1, 10, self.weights[layer][0].shape)
         self.weights[layer] = np.vstack((self.weights[layer], new_weights))
-
+        
         new_biases = np.random.randint(1, 10, 1)/10
         self.biases[layer] = np.hstack((self.biases[layer], new_biases))
         
