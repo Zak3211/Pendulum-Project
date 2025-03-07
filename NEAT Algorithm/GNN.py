@@ -1,15 +1,17 @@
 from collections import defaultdict
 from collections import deque
 import random
+import math
+import copy
 
 class GraphNode:
     def __init__(self, id):
         self.id = id
         self.value = 0
-        self.bias = random.randint(1,100)/100
+        self.bias = random.randint(-100,100)/100
 
 class graphNeuralNetwork: 
-    def __init__(self, numInputs = 4, numOutputs = 2):
+    def __init__(self, numInputs = 5, numOutputs = 1):
         self.idToNode = {}
         self.currId = 0
 
@@ -17,17 +19,19 @@ class graphNeuralNetwork:
         self.inputNodes = self.outputNodes = None
         self.inputNodes = [self.addNode() for _ in range(numInputs)]
         self.outputNodes = [self.addNode() for _ in range(numOutputs)]
-        
         self.inputSet = set(self.inputNodes)
         self.outputSet = set(self.outputNodes)
-
-        self.innerNodes = []
 
         self.graph = defaultdict(list)
         self.reverseGraph = defaultdict(list)
 
         self.connections = {}
         self.connectionList = []
+
+        self.addNode()
+        self.addNode()
+        for _ in range(15):
+            self.addConnection()
 
     def addNode(self):
         newNode = GraphNode(self.currId)
@@ -54,9 +58,11 @@ class graphNeuralNetwork:
                 continue
             self.reverseGraph[node2].append(node1)
 
-            self.connections[(node1, node2)] = random.randint(1,100)/100
+            self.connections[(node1, node2)] = random.randint(-100,100)/100
             self.connectionList.append((node1, node2))
-            break
+            return True
+        self.addNode()
+        return False
     
     def removeConnection(self):
         if not self.connectionList:
@@ -92,39 +98,29 @@ class graphNeuralNetwork:
             if (neighbor, nodeId) not in self.connections:
                 continue
             currNode.value += self.connections[(neighbor, nodeId)]*self.getNodeValue(neighbor)
-        currNode.value = max(0, currNode.value + currNode.bias)
+        currNode.value = math.tanh(currNode.value + currNode.bias) 
         return currNode.value
     
-    def forward(self):
-        return [self.getNodeValue(outputNode) for outputNode in self.outputNodes]
+    def forward(self, inputs):
+        self.setInputs(inputs)
+        outPutLayer = [self.getNodeValue(outputNode) for outputNode in self.outputNodes]
+        if len(outPutLayer) == 1:
+            outPutLayer = outPutLayer[0]
+        return 100*outPutLayer
 
     def mutate(self):
-        for connection in self.connections.keys():
-            self.connections[connection] += random.randint(-100,100)/1000
+        newNetwork = copy.deepcopy(self)
 
-        for nodeId in self.ids:
-            self.idToNode[nodeId].bias += random.randint(-100,100)/1000
+        for connection in newNetwork.connections.keys():
+            newNetwork.connections[connection] += random.randint(-100,100)/600
+        for nodeId in newNetwork.ids:
+            newNetwork.idToNode[nodeId].bias += random.randint(-100,100)/600
         
-        newNodeCount = max(0, random.randint(0,100) - 80)//10
-        for _ in range(newNodeCount):
-            self.addNode()
             
-        removedConnectionCount = max(0, random.randint(0,100) - 85)//5
-        for _ in range(removedConnectionCount):
-            self.removeConnection()
+        random_variable = random.randint(0,15)
+        if random_variable == 1:
+            newNetwork.addConnection()
+        elif random_variable == 2:
+            newNetwork.removeConnection()
 
-        newConnectionCount = max(0, random.randint(0,100) - 70)//5
-        for _ in range(newConnectionCount):
-            self.addConnection()
-        
-newNet = graphNeuralNetwork()
-newNet.addNode()
-newNet.addNode()
-for _ in range(100):
-    newNet.addConnection()
-
-newNet.setInputs([1,2,3,4])
-for _ in range(50):
-    newNet.removeConnection()
-    print(len(newNet.connectionList))
-    print(newNet.forward())
+        return newNetwork

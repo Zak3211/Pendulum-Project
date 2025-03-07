@@ -2,32 +2,33 @@ import math
 
 class doublePendulum:
     def __init__(self):
+        self.boundary = 70
+
         #constants
-        if True:
-            self.g = -9.81
-            self.L1 = 100
-            self.L2 = 100
-            self.m1 = 100
-            self.m2 = 100
-            self.dt = 0.025
-            self.width =1000
+        self.g = -9.81
+        self.L1 = 100
+        self.L2 = 100
+        self.m1 = 100
+        self.m2 = 100
+        self.dt = 0.025
+        self.width =1000
+        self.by = 250
 
         #Angle Parameters
-        if True:
-            self.theta1 = 0
-            self.theta2 = 0
+        self.theta1 = math.pi
+        self.theta2 = math.pi
+        self.theta1_ = 0
+        self.theta2_ = 0
+        self.theta1__ = 0
+        self.theta2__ = 0
+        self.y1 =  self.by - self.L1*math.cos(self.theta1)
+        self.y2 = self.y1 - self.L2*math.cos(self.theta2)
 
-            self.theta1_ = 0
-            self.theta2_ = 0
-
-            self.theta1__ = 0
-            self.theta2__ = 0
 
         #Base Parameters:
-        if True:
-            self.xb = 500
-            self.xb_ = 0
-            self.xb__ = 0
+        self.xb = 500
+        self.xb_ = 0
+        self.xb__ = 0
         
     
     def get_theta1__(self):
@@ -45,15 +46,15 @@ class doublePendulum:
         self.theta2__ /= self.L2
     
     def update(self):
-        self.xb__ = min(self.xb__, 100)
+        self.xb__ = min(self.xb__, 250)
 
         self.xb_ += self.xb__*self.dt
         self.xb += self.xb_*self.dt
         self.xb_ *= 0.9
 
-        self.xb = max(self.xb, 70)
-        self.xb = min(self.xb, self.width - 70)
-        if self.xb == 70 or self.xb == self.width - 70:
+        self.xb = max(self.xb, self.boundary)
+        self.xb = min(self.xb, self.width - self.boundary)
+        if self.xb == self.boundary or self.xb == self.width - self.boundary:
             self.xb__ = 0
          
         self.get_theta1__()
@@ -70,6 +71,9 @@ class doublePendulum:
         self.theta1 += self.theta1_*self.dt
         self.theta2 += self.theta2_*self.dt
 
+        self.y1 =  self.by - self.L1*math.cos(self.theta1)
+        self.y2 = self.y1 - self.L2*math.cos(self.theta2)
+        
         self.theta1_ *= 0.999
         self.theta2_ *= 0.999
 
@@ -103,6 +107,13 @@ def displayPendulum():
         
         base = canvas.create_line(p.xb-20, by, p.xb+20, by, fill = 'gray', width = 5)
     
+    def move_left(event):
+        p.xb__ = -50
+    def move_right(event):
+        p.xb__ = 50
+
+    window.bind('<Left>', move_left)
+    window.bind('<Right>', move_right)
 
     def game_loop():
         p.update()
@@ -112,6 +123,7 @@ def displayPendulum():
 
         x2 = x1 + p.L2*math.sin(p.theta2)
         y2 = y1 - p.L2*math.cos(p.theta2)
+        print(y2)
 
         canvas.coords(line1, [p.xb, by, x1, y1])
         canvas.coords(point1, [x1 - 10, y1 - 10, x1 + 10, y1 + 10])
@@ -124,4 +136,6 @@ def displayPendulum():
     
     game_loop()
     window.mainloop()
-displayPendulum()
+
+if __name__ == '__main__':
+    displayPendulum()
