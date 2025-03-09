@@ -73,7 +73,7 @@ class doublePendulum:
 
         self.y1 =  self.by - self.L1*math.cos(self.theta1)
         self.y2 = self.y1 - self.L2*math.cos(self.theta2)
-        
+
         self.theta1_ *= 0.999
         self.theta2_ *= 0.999
 
@@ -108,9 +108,9 @@ def displayPendulum():
         base = canvas.create_line(p.xb-20, by, p.xb+20, by, fill = 'gray', width = 5)
     
     def move_left(event):
-        p.xb__ = -50
+        p.xb__ = -30
     def move_right(event):
-        p.xb__ = 50
+        p.xb__ = 30
 
     window.bind('<Left>', move_left)
     window.bind('<Right>', move_right)
@@ -123,7 +123,6 @@ def displayPendulum():
 
         x2 = x1 + p.L2*math.sin(p.theta2)
         y2 = y1 - p.L2*math.cos(p.theta2)
-        print(y2)
 
         canvas.coords(line1, [p.xb, by, x1, y1])
         canvas.coords(point1, [x1 - 10, y1 - 10, x1 + 10, y1 + 10])

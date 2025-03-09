@@ -143,6 +143,7 @@ def reevaluateNetworks():
         pickle.dump(networks, file)
 
 
-#displayPendulum()
+displayPendulum()
 while True:
+    break
     simulateGeneration()
