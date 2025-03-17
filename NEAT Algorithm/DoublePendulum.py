@@ -5,7 +5,7 @@ class doublePendulum:
         self.boundary = 70
 
         #constants
-        self.g = -9.81
+        self.g = -1
         self.L1 = 100
         self.L2 = 100
         self.m1 = 100
@@ -21,14 +21,20 @@ class doublePendulum:
         self.theta2_ = 0
         self.theta1__ = 0
         self.theta2__ = 0
-        self.y1 =  self.by - self.L1*math.cos(self.theta1)
-        self.y2 = self.y1 - self.L2*math.cos(self.theta2)
-
 
         #Base Parameters:
         self.xb = 500
         self.xb_ = 0
         self.xb__ = 0
+
+        #Coordinate Parameters (Latent)
+        self.x1 = self.xb + self.L1*math.sin(self.theta1)
+        self.x2 = self.x1 + self.L2*math.sin(self.theta2)
+        self.y1 =  self.by - self.L1*math.cos(self.theta1)
+        self.y2 = self.y1 - self.L2*math.cos(self.theta2)
+
+
+
         
     
     def get_theta1__(self):
@@ -71,6 +77,8 @@ class doublePendulum:
         self.theta1 += self.theta1_*self.dt
         self.theta2 += self.theta2_*self.dt
 
+        self.x1 = self.xb + self.L1*math.sin(self.theta1)
+        self.x2 = self.x1 + self.L2*math.sin(self.theta2)
         self.y1 =  self.by - self.L1*math.cos(self.theta1)
         self.y2 = self.y1 - self.L2*math.cos(self.theta2)
 

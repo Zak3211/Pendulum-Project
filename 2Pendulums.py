@@ -154,7 +154,6 @@ def update(th1, th2, w1, w2, o1, o2, th1_, th2_, w1_, w2_, o1_, o2_):
     canvas.coords(l1_, [screen_width/2, screen_height/2, x1_, y1_])
     canvas.coords(l2_, [x1_, y1_, x2_, y2_])
 
-
     canvas.after(1, lambda: update(th1, th2, w1, w2, o1, o2, th1_, th2_, w1_, w2_, o1_, o2_))
 
 update(th1, th2, w1, w2, o1, o2, th1_, th2_, w1_, w2_, o1_, o2_)

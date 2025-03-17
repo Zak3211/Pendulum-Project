@@ -13,7 +13,7 @@ L2 = 100
 #angles defining the system
 
 #0.000000000000000309 - min deviation 
-th1 = 1.5*math.pi/2
+th1 = math.pi/2
 th2 = math.pi
 
 #w1 = th1'. w2 = th2'

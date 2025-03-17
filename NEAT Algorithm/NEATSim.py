@@ -3,70 +3,107 @@ from GNN import graphNeuralNetwork
 import tkinter as tk
 import pickle
 import math
+import heapq
 
-def simulate(network):
-    currPendulum = doublePendulum()
-    
+currFile = "GraphNetworks.pkl"
+
+def getInputs(currPendulum):
+    """Returns network inputs"""
+
+    return [currPendulum.xb, currPendulum.xb_, currPendulum.x1, currPendulum.x2, currPendulum.y1, currPendulum.y2, currPendulum.theta1__, currPendulum.theta2__, currPendulum.theta1_, currPendulum.theta2_, currPendulum.theta1, currPendulum.theta2]
+
+def fitness_function1(currPendulum, network):
+    """Enforces Swing-up behavior"""
+
+    #Initializes Downward Pendulum
+    currPendulum.theta1 = math.pi
+    currPendulum.theta2 = math.pi
+
     fitness_score = 0
-    remaining_epochs = 3000
-    prev = False
-    while remaining_epochs > 0 and fitness_score < 100000:
+    for _ in range(1000):
+        
+        #Updates Pendulum and takes network output
         currPendulum.update()
-        inputs = [currPendulum.theta1_, currPendulum.theta2_, currPendulum.theta1, currPendulum.theta2, currPendulum.xb]
+        inputs = getInputs(currPendulum)
         currPendulum.xb__ = network.forward(inputs)
 
-        target_height = 60
-        if currPendulum.y2 > target_height:
-            if prev and currPendulum.y2 > target_height + 15:
-                fitness_score -= 100
-            if prev and currPendulum.y1 > currPendulum.by:
-                fitness_score -= 3
-            remaining_epochs -= 1
-            prev = False
-        else:
-            prev = True
-            fitness_score += 1
-        if currPendulum.y2 <= 53:
-            fitness_score += 5
+        #Negatively reinforces pendulum not being balanced
+        if currPendulum.y2 > 80:
+            fitness_score -= 1
 
-        if currPendulum.xb == currPendulum.boundary or currPendulum.xb == currPendulum.width - currPendulum.boundary:
-            return -math.inf
+        #Terminates if pendulum is at the top
+        if currPendulum.y2 <= 55:
+            return fitness_score
+        
+    return fitness_score
+
+
+def fitness_function2(currPendulum, network):
+    """Enforces Balancing Behavior"""
+
+    fitness_score = 0
+    for _ in range(2000):
+        
+        #Updates Pendulum and takes network output
+        currPendulum.update()
+        inputs = getInputs(currPendulum)
+        currPendulum.xb__ = network.forward(inputs)
+
+        #Ends the simulation if Pendulum becomes unbalanced
+        if currPendulum.y2 > currPendulum.by:
+            return fitness_score
+
+        #Positively reinforces pendulum being balanced
+        if currPendulum.y2 <= 80:
+            fitness_score += 1
     return fitness_score
 
 
 def load_networks():
-    with open(f"GraphNetworks.pkl", "rb") as file:
+    """Loads graphNeuralNetwork objects from pikl file"""
+
+    with open(currFile, "rb") as file:
         return pickle.load(file)
 
 def simulateGeneration():
-    initial = load_networks()
+    """Simulates one generation of networks"""
 
-    offspring = []
-    for brain in initial:
+    #Initializes current generation
+    curr_generation = []
+    previous_generation = load_networks()
+    for network in previous_generation:
+
+        #Creates a weighted amount of mutated offspring
         for i in range(10):
-            offspring.append(brain[1].mutate())
+            curr_generation.append(network[1].mutate())
 
-    avg_score = 0
-    for i in range(len(offspring)):
-        total = simulate(offspring[i])
-        offspring[i] = [total, offspring[i]]
-        avg_score += total
+    #Categorizes the fitness of every network
+    for i in range(len(curr_generation)):
 
-    avg_score /= len(offspring)
-    #offspring.extend(initial)
-    offspring.sort(reverse= True, key = lambda x: x[0])
+        currPendulum = doublePendulum()
+        currPendulum.theta1 = 0.1
+        currPendulum.theta2 = 0
 
-    print([offspring[i][0] for i in range(15)])
-    offspring = offspring[:35]
-    offspring = [child for child in offspring]
-    print(offspring[0][1].connectionList)
+        fitness = fitness_function1(currPendulum, curr_generation[i])
+        fitness += fitness_function2(currPendulum, curr_generation[i])
 
-    with open("GraphNetworks.pkl", "wb") as file:
-        pickle.dump(offspring, file)
+        curr_generation[i] = (fitness, curr_generation[i])
+    
+    #Fetches top 20 performing networks
+    next_generation = sorted(curr_generation, reverse = True, key = lambda x: x[0])[:20]
+
+    #Displays certain atributes 
+    print([next_generation[-i][0] for i in range(15)])
+    print(next_generation[0][1].connectionList)
+    
+    #Writes best-performing networks to next generation
+    with open(currFile, "wb") as file:
+        pickle.dump(next_generation, file)
 
 def displayPendulum():
+    """Displays the best performing network from the previous generation"""
+
     network = load_networks()[0]
-    print(network[0])
     network = network[1]
     window = tk.Tk()
     canvas = tk.Canvas(window, bg = 'black', highlightthickness= 0)
@@ -76,6 +113,8 @@ def displayPendulum():
     canvas.pack()
 
     p = doublePendulum()
+    p.theta1 = 0.1
+    p.theta2 = 0
 
     x1 = p.xb + p.L1*math.sin(p.theta1)
     y1 =  p.by - p.L1*math.cos(p.theta1)
@@ -88,31 +127,11 @@ def displayPendulum():
     point2 = canvas.create_oval(x2 - 10, y2 - 10, x2 + 10, y2 + 10, fill='white')      
     base = canvas.create_line(p.xb-20, p.by, p.xb+20, p.by, fill = 'gray', width = 5)
     
-    epochs = 3000
-    fitness_score = 0
-    prev = False
-    def game_loop():
-        nonlocal epochs
-        nonlocal fitness_score
-        nonlocal prev
 
-        if epochs < 0:
-            return
-        
+    def game_loop():
         p.update()
         inputs = [p.theta1_, p.theta2_, p.theta1, p.theta2, p.xb]
         p.xb__ = network.forward(inputs)
-
-        target_height = 55
-        if p.y2 > target_height:
-            if prev:
-                if p.y2 > target_height + 15:
-                    fitness_score -= 350
-            epochs -= 1
-            prev = False
-        else:
-            prev = True
-            fitness_score += 1
 
         x1 = p.xb + p.L1*math.sin(p.theta1)
         y1 = p.by - p.L1*math.cos(p.theta1)
@@ -128,20 +147,15 @@ def displayPendulum():
     
     game_loop()
     window.mainloop()
-    print(fitness_score)
 
 def resetNetworks():
-    initialNetworks = [[0, graphNeuralNetwork()] for _ in range(35)]
-    with open("GraphNetworks.pkl", "wb") as file:
+    """Reinitializes the pikl file to random networks"""
+
+    initialNetworks = [[0, graphNeuralNetwork(numInputs= 12)] for _ in range(35)]
+    with open(currFile, "wb") as file:
         pickle.dump(initialNetworks, file)
 
-def reevaluateNetworks():
-    networks = load_networks()
-    for i in range(len(networks)):
-        networks[i][0] = simulate(networks[i][1])
-    with open("GraphNetworks.pkl", "wb") as file:
-        pickle.dump(networks, file)
-
+resetNetworks()
 
 displayPendulum()
 while True:
