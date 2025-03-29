@@ -4,8 +4,8 @@ class doublePendulum:
     def __init__(self):
         self.boundary = 70
 
-        #constants
-        self.g = -1
+        #Constants
+        self.g = -3
         self.L1 = 100
         self.L2 = 100
         self.m1 = 100
@@ -33,9 +33,6 @@ class doublePendulum:
         self.y1 =  self.by - self.L1*math.cos(self.theta1)
         self.y2 = self.y1 - self.L2*math.cos(self.theta2)
 
-
-
-        
     
     def get_theta1__(self):
         self.theta1__ =  -(self.m1 + self.m2)*self.xb__*math.cos(self.theta1) 

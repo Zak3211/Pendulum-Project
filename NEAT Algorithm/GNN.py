@@ -3,6 +3,7 @@ from collections import deque
 import random
 import math
 import copy
+import functools
 
 class GraphNode:
     def __init__(self, id):
@@ -21,8 +22,8 @@ class graphNeuralNetwork:
         self.ids = []
         self.idSet = set()
 
-        self.graph = defaultdict(list)
-        self.reverseGraph = defaultdict(list)
+        self.graph = defaultdict(set)
+        self.reverseGraph = defaultdict(set)
 
         self.connections = {}
         self.connectionList = []
@@ -30,7 +31,7 @@ class graphNeuralNetwork:
         #Initializes input, output, and internal nodes.
         self.inputNodes = [self.addInitialNode(isInner=False) for _ in range(numInputs)]
         self.outputNodes = [self.addInitialNode(isInner=False) for _ in range(numOutputs)]
-        self.internalNodes = [self.addInitialNode(isInner=True) for _ in range(3)]
+        self.internalNodes = [self.addInitialNode(isInner=True) for _ in range(6)]
 
         #Stores input and output ids in a set for quick lookup.
         self.inputSet = set(self.inputNodes)
@@ -54,17 +55,17 @@ class graphNeuralNetwork:
         inputNode = random.choice(self.inputNodes)
         outputNode = random.choice(self.outputNodes)
 
-        #inputNode => newNode connection
+        #inputNode -> newNode connection
         self.connectionList.append((inputNode, newNode.id))
         self.connections[(inputNode, newNode.id)] = random.randint(-100, 100)/100
-        self.reverseGraph[newNode.id].append(inputNode)
-        self.graph[inputNode].append(newNode.id)
+        self.reverseGraph[newNode.id].add(inputNode)
+        self.graph[inputNode].add(newNode.id)
 
-        #newNode => outputNode conneciton
+        #newNode -> outputNode conneciton
         self.connectionList.append((newNode.id, outputNode))
         self.connections[(newNode.id, outputNode)] = random.randint(-100, 100)/100
-        self.reverseGraph[newNode.id].append(outputNode)
-        self.graph[outputNode].append(newNode.id)
+        self.reverseGraph[outputNode].add(newNode.id)
+        self.graph[newNode.id].add(outputNode)
 
         self.currId += 1
         return self.currId - 1
@@ -75,12 +76,31 @@ class graphNeuralNetwork:
         if not self.connectionList:
             return False
         
-        #Deletes a current connection saving prevNode := connection[0], nextNode := connection[1]
-        connectionIndex = random.randint(0, len(self.connectionList)-1)
-        connection = self.connectionList[connectionIndex]
+        #Selects a random connection
+        #prevNode := connection[0], nextNode := connection[1]
+        while self.connectionList:
+
+            #Selects a random connection
+            connectionIndex = random.randint(0, len(self.connectionList)-1)
+            connection = self.connectionList[connectionIndex]
+
+            #Removes the connection from connectionList
+            connection = self.connectionList[connectionIndex]
+            self.connectionList.pop(connectionIndex)
+
+            #Deleted node edge case (invalid connection)
+            if connection in self.connections:
+                break
+        else:
+            return False
+        
+        #Saves the connection Weight
         connectionWeight = self.connections[connection]
+
+        #Deletes the connection from the network
         del self.connections[connection]
-        self.connectionList.pop(connectionIndex)
+        self.graph[connection[0]].remove(connection[1])
+        self.reverseGraph[connection[1]].remove(connection[0])
 
         #Initializes a new node and updates relevant paramters
         newNode = GraphNode(self.currId)
@@ -89,17 +109,17 @@ class graphNeuralNetwork:
         self.idSet.add(self.currId)
         self.internalNodes.append(self.currId)
 
-        #Adds the first connection: prevNode => newNode
+        #Adds the first connection: prevNode -> newNode
         self.connectionList.append((connection[0], self.currId))
         self.connections[(connection[0], self.currId)] = connectionWeight
-        self.reverseGraph[self.currId].append(connection[0])
-        self.graph[connection[0]].append(self.currId)
+        self.reverseGraph[self.currId].add(connection[0])
+        self.graph[connection[0]].add(self.currId)
 
-        #Adds the second connection: newNode => nextNode
+        #Adds the second connection: newNode -> nextNode
         self.connectionList.append((self.currId, connection[1]))
         self.connections[(self.currId, connection[1])] = random.randint(-100,100)/100
-        self.reverseGraph[connection[1]].append(self.currId)
-        self.graph[self.currId].append(connection[1])
+        self.reverseGraph[connection[1]].add(self.currId)
+        self.graph[self.currId].add(connection[1])
 
         self.currId += 1
         return True
@@ -122,6 +142,20 @@ class graphNeuralNetwork:
         nodeId = self.ids[nodeIndex]
         self.ids.pop(nodeIndex)
         self.idSet.remove(nodeId)
+        
+        #self.reverseGraph[validNode] = deletedNode edge case 
+        for neighbor in self.graph[nodeId]:
+            self.reverseGraph[neighbor].remove(nodeId)
+            del self.connections[(nodeId, neighbor)]
+
+        #self.graph[validNode] = deletedNode edge case 
+        for neighbor in self.reverseGraph[nodeId]:
+            self.graph[neighbor].remove(nodeId)
+            del self.connections[(neighbor, nodeId)]
+
+        #Updates adjacency lists
+        del self.graph[nodeId]
+        del self.reverseGraph[nodeId]
 
         return True
 
@@ -141,13 +175,13 @@ class graphNeuralNetwork:
             return False
 
         #Adds a phantom connection and checks for loops
-        self.graph[node1].append(node2)
+        self.graph[node1].add(node2)
         if self.detectLoop(node1):
-            self.graph[node1].pop()
+            self.graph[node1].remove(node2)
             return False
             
         #Updates paramters if there are no issues
-        self.reverseGraph[node2].append(node1)
+        self.reverseGraph[node2].add(node1)
         self.connections[(node1, node2)] = random.randint(-100,100)/100
         self.connectionList.append((node1, node2))
 
@@ -155,15 +189,31 @@ class graphNeuralNetwork:
     
     def removeConnection(self):
         """Removes a connection if there are any."""
-
+        
         #Handling no connections edge case
         if not self.connectionList:
             return False
         
-        #Selects a random connection and deletes it
-        connectionIndex = random.randint(0, len(self.connectionList)-1)
-        del self.connections[self.connectionList[connectionIndex]]
-        self.connectionList.pop(connectionIndex)
+        #Selects a random connection, saves it, and deletes it
+        while self.connectionList:
+
+            #Fetches a random connection and deletes it
+            connectionIndex = random.randint(0, len(self.connectionList)-1)
+
+            #Saves the valid connection
+            connection = self.connectionList[connectionIndex]
+            self.connectionList.pop(connectionIndex)
+
+            #Delted node edge case (invalid connection)
+            if connection in self.connections:
+                break
+
+        #Deletes connection -> weight relation
+        del self.connections[connection]
+
+        #Updates adjacency lists
+        self.graph[connection[0]].remove(connection[1])
+        self.reverseGraph[connection[1]].remove(connection[0])
 
         return True        
 
@@ -173,12 +223,18 @@ class graphNeuralNetwork:
         visited = set()
         queue = deque([nodeId])
         while queue:
+
             currNode = queue.popleft()
+
+            #Loop detection using a set
             if currNode in visited:
                 return True
             visited.add(currNode)
+
+            #Fetches adjacent neighbors
             for neighbour in self.graph[currNode]:
                 queue.append(neighbour)
+
         return False
 
     def setInputs(self, inputs):
@@ -188,26 +244,19 @@ class graphNeuralNetwork:
         for i in range(len(inputs)):
             self.idToNode[self.inputNodes[i]].value = inputs[i]
 
+    @functools.lru_cache(None)
     def getNodeValue(self, nodeId):
         """Basic dfs that self.reverseGraph and retrieves inputs"""
-
-        #Delted node edge case
-        if nodeId not in self.idSet:
-            return 0
         
         currNode = self.idToNode[nodeId]
 
         #Base case for recursive function.
         if nodeId in self.inputSet:
             return currNode.value
-
+        
+        #Sums up previous node values
         currNode.value = 0
         for neighbor in self.reverseGraph[nodeId]:
-
-            #Delted connection edge case
-            if (neighbor, nodeId) not in self.connections:
-                continue
-
             currNode.value += self.connections[(neighbor, nodeId)]*self.getNodeValue(neighbor)
 
         #Apply activation function
@@ -218,18 +267,24 @@ class graphNeuralNetwork:
     def forward(self, inputs):
         """Intializes the inputs and runs dfs on all output nodes."""
 
+        #Resets the cache
+        self.getNodeValue.cache_clear()
+
         #Prepares inputs and initializes output array
         self.setInputs(inputs)
         outPutLayer = [self.getNodeValue(outputNode) for outputNode in self.outputNodes]
 
         #Edge case for one output
         if len(outPutLayer) == 1:
-            outPutLayer = outPutLayer[0]
+            outPutLayer = 70*outPutLayer[0]
 
-        return 100*outPutLayer
+        return outPutLayer
 
     def mutate(self):
         """Creates a mutated copy of the current network."""
+
+        #Clears the cache to avoid issues
+        self.getNodeValue.cache_clear()
 
         #Creates a deepcopy of the current network
         newNetwork = copy.deepcopy(self)
@@ -242,7 +297,7 @@ class graphNeuralNetwork:
         
         #Augments child topology based on basic probability logic
         #There is the option to use more advanced statistical methods for better performance.
-        random_variable = random.randint(0,15)
+        random_variable = random.randint(0,55)
         if random_variable == 1 or random_variable == 2:
             newNetwork.addConnection()
         elif random_variable == 3:
@@ -251,6 +306,5 @@ class graphNeuralNetwork:
             newNetwork.addNode()
         elif random_variable == 5:
             newNetwork.deleteNode()
-
 
         return newNetwork
